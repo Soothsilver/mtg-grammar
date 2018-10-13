@@ -1,7 +1,16 @@
-// Commons done.
-// Rares: TODO Gruesome Menagerie; Etrata, the Silencer; Thief of Sanity; Unmoored Ego
-// Parens: Flower
-// Modification: Pelt Collector (added 'power')
+// Grammar for Magic cards in "Guilds of Ravnica"
+
+// Problematic cards:
+// --------------------
+// Semantic toruble Trostani Discordant
+// Parens: Flower, Thief of Sanity problem, Nullhide Ferox problem, Aurelia
+// Modification: Pelt Collector (added 'power'), Underrealm Lich (added 'put'), Ral (added 'put'),
+// Ral (added "." at the end)
+// Comments for why a grammar rule is needed (Chance for Glory)
+// Cheating for: Gruesome Menagerie
+// Lazav the Multifarious name + planeswalker deck
+
+// Grammar starts there
 grammar mtg;
 fragment A : [aA]; // match either an 'a' or 'A'
 fragment B : [bB];
@@ -52,7 +61,10 @@ abilityWord: 'Battalion' | 'Bloodrush' | 'Channel' | 'Chroma' | 'Cohort' | 'Cons
 
 // Activated abilities
 activated : costs ':' SPACE effect (SPACE activationInstructions)?;
-activationInstructions: ACTIVATE SPACE 'this ability only' SPACE activationInstruction FULLSTOP;
+activationInstructions:
+     ACTIVATE SPACE 'this ability only' SPACE activationInstruction FULLSTOP
+   | 'Any player may activate this ability.'
+   ;
 activationInstruction: 'once each turn' | 'any time you could cast a sorcery';
 activatedAbilities:
     (itsPossessive SPACE)? ACTIVATED SPACE 'abilities';
@@ -72,7 +84,6 @@ triggerConditionInner:
   | YOU SPACE 'do'
   | player SPACE GAINS SPACE 'life'
   | object SPACE 'is dealt damage'
-  | object SPACE 'becomes' SPACE becomesWhat
   ;
 interveningIfClause: IF SPACE condition ',' SPACE;
 
@@ -96,29 +107,43 @@ s:  ss
    | s SPACE 'and' SPACE s
    | ss (',' SPACE (('then' | 'and')? SPACE)? s)+
    | 'Otherwise,' SPACE s
+   | weirdSentence
     ;
 // Single sentence
 ss: imperative
     | ss SPACE 'and' SPACE ss
     | ss ',' SPACE 'where X is' SPACE numberDefinition
     | object SPACE objectVerbPhrase
+    | IT_S SPACE isWhat
     | player SPACE playerVerbPhrase
     | IF SPACE s ',' SPACE doSomethingInsteadOfSomethingElse
-    | IF SPACE s ',' SPACE s
+    | IF SPACE condition ',' SPACE s
     | IF SPACE object SPACE 'would' SPACE (objectVerbPhrase | objectInfinitive) ',' SPACE (s SPACE 'instead' | 'instead' SPACE s)
+    | IF SPACE player SPACE 'would' SPACE playerVerbPhrase ',' SPACE (s SPACE 'instead' | 'instead' SPACE s)
     | asLongAsClause ',' SPACE s
+    | duration ',' SPACE s
+    | FOR SPACE EACH SPACE object ',' SPACE s
     | activatedAbilities SPACE activatedAbilitiesVP
     | itsPossessive SPACE numericalCharacteristic SPACE 'is' SPACE 'equal' SPACE 'to' SPACE numberDefinition
+    | AS SPACE s ',' SPACE s
      ;
-
+// Special grammar
+weirdSentence:
+    'After' SPACE qualifiedPartOfTurn ', there is an additional combat phase followed by an additional main phase'
+    ;
+foreachClause:
+     FOR SPACE EACH SPACE nakedObject
+   | FOR SPACE EACH SPACE 'color of mana spent to cast' SPACE object
+    ;
 // Condition
 condition:
     s
-  | 'you\'ve cast' SPACE object SPACE thisTurn
-  | 'you\'ve surveilled' SPACE thisTurn
+  | YOU_VE SPACE CAST SPACE object SPACE duration
+  | YOU_VE SPACE 'surveilled' SPACE duration
   | IT_S SPACE 'your' SPACE 'turn'
   | object SPACE 'has' SPACE countableCount SPACE (counterKind SPACE)? COUNTER 's' SPACE 'on' SPACE IT
   | numberDefinition SPACE 'is' SPACE numericalComparison
+  | 'that mana is spent on' SPACE object
   ;
 
 // Subject
@@ -144,8 +169,11 @@ object :
  | IT
  | THEY
  | THEM
- | 'the rest'
+ | 'one'
+ | 'the rest' | 'the other'
+ | 'this emblem'
  | referencingObjectPrefix SPACE nakedObject
+ | referencingObjectPrefix SPACE object // because of "one of them"
  | object SPACE THAT_S SPACE isWhat
  | object SPACE 'and' SPACE object
  | object SPACE 'or' SPACE object
@@ -155,7 +183,7 @@ object :
  | nakedObject // because of plurals...
  | object SPACE 'and/or' SPACE object
  | EACH SPACE 'of' SPACE object
- | THE SPACE 'top' SPACE englishNumber SPACE 'cards of' SPACE zone
+ | THE SPACE 'top' SPACE englishNumber SPACE CARD 's' SPACE 'of' SPACE zone
  | THE SPACE 'top' SPACE 'card of' SPACE zone
  ;
 suffix:
@@ -165,15 +193,19 @@ suffix:
  | YOU SPACE CAST
  | THAT SPACE 'targets only' SPACE object
  | 'tapped this way'
+ | 'exiled' SPACE (fromZone SPACE)? 'this way'
  | 'of' SPACE THE SPACE anyType SPACE 'type' SPACE 'of' SPACE playersPossessive SPACE 'choice'
  | object SPACE 'could target'
  | 'able to block' SPACE object
  | THAT SPACE 'convoked' SPACE object
  | 'from among them'
+ | 'named' SPACE name
+ | YOU_VE SPACE 'cast before it this turn'
  ;
 nakedObject:
-   prefix SPACE nakedObject
+   prefix+ SPACE nakedObject
  | COPY (SPACE 'of' SPACE object)?
+ | 'copies'
  | cumulativeReferencingPrefix SPACE nakedObject
  | nakedObject SPACE 'or' SPACE nakedObject
  | nakedObject ',' SPACE (nakedObject ',' SPACE )+ 'or' SPACE nakedObject
@@ -185,12 +217,13 @@ nakedObject:
 referencingObjectPrefix:
     THE SPACE 'sacrificed'
   | THE SPACE 'exiled'
+  | 'any of'
   | THE
   | commonReferencingPrefix
   | countableCount
   ;
 cumulativeReferencingPrefix:
-    'other' |
+    'other' | 'Other' |
     EQUIPPED
     ;
 
@@ -214,10 +247,12 @@ prefix :
     ENCHANTED
   | 'non' anyType
   | 'non-' anyType
+  | 'exiled'
   | anyType
   | 'token' | 'nontoken'
   | color
   | 'tapped' | 'untapped'
+  | pt
   | LEGENDARY
   | 'attacking'
   | 'blocking'
@@ -230,30 +265,32 @@ imperative:
   | DESTROY ' ' object
   | DISCARD ' ' object
   | RETURN ' ' object (SPACE fromZone)? SPACE 'to' SPACE zone
-  | EXILE ' ' object (SPACE untilClause)?
+  | EXILE ' ' object (SPACE 'face down')? (SPACE untilClause)?
   | CREATE ' ' createTokenDescription
   | CREATE ' ' INDEFINITE_ARTICLE_A SPACE 'token' SPACE THAT_S SPACE object
   | COPY ' ' object
   | REMOVE ' ' countableCount SPACE counterKind SPACE COUNTER 's' SPACE 'from' SPACE object
-  | (CAST | PLAY) 's'? ' ' object (SPACE 'without paying' SPACE ITS SPACE 'mana cost')? (SPACE thisTurn)?
+  | (CAST | PLAY) 's'? ' ' object (SPACE 'without paying' SPACE ITS SPACE 'mana cost')? (SPACE duration)?
   | SURVEIL SPACE NUMBER
-  | SEARCH SPACE zone SPACE FOR SPACE object
+  | SEARCH SPACE zone (SPACE FOR SPACE object)?
   | (YOU SPACE)? CHOOSE SPACE object
-  | (YOU SPACE)? DRAW SPACE (INDEFINITE_ARTICLE_A SPACE CARD | englishNumber SPACE CARD 's')
-  | SHUFFLE SPACE zone
-  | SHUFFLE SPACE (object | zone) SPACE 'into' SPACE zone
+  | (YOU SPACE)? (DRAW | DRAW 's') SPACE (INDEFINITE_ARTICLE_A SPACE CARD | englishNumber SPACE CARD 's')
+  | SHUFFLE 's'? SPACE zone
+  | SHUFFLE 's'? SPACE (object | zone) SPACE 'into' SPACE zone
   | COUNTER SPACE object
   | TAP ' ' object
+  | TAKE ' ' 'an extra turn after this one'
   | UNTAP ' ' object
   | (YOU SPACE)? PAY SPACE manacost
   | PAY SPACE numericalNumber SPACE 'life'
   | ADD SPACE 'one mana of any color'
   | ADD SPACE englishNumber SPACE 'mana of any one color'
   | ADD SPACE manaSymbols (SPACE 'or' SPACE manaSymbols)?
-  | PREVENT SPACE damagePreventionAmount SPACE damageNoun SPACE 'that would be dealt' (SPACE 'to' SPACE object)? (SPACE thisTurn)?
+  | PREVENT SPACE damagePreventionAmount SPACE damageNoun SPACE 'that would be dealt' (SPACE 'to' SPACE object)? (SPACE duration)?
   | PUT SPACE englishNumber SPACE counterKind SPACE (COUNTER | COUNTER 's') SPACE 'on' SPACE object
   | YOU SPACE CHOOSE SPACE object (SPACE 'from' SPACE IT)?
   | LOOK SPACE 'at the top' SPACE englishNumber SPACE CARD 's' SPACE 'of' SPACE zone
+  | LOOK SPACE AT SPACE object
   | REVEAL SPACE object
   | PUT SPACE object SPACE intoZone (SPACE 'tapped')?
   | gains SPACE 'control' SPACE 'of' SPACE object
@@ -264,6 +301,9 @@ imperative:
   | imperative SPACE 'unless' SPACE imperative
   | CHOOSE SPACE 'new targets for' SPACE object
   | SWITCH SPACE 'the power and toughness of' SPACE object SPACE untilClause
+  | 'do the same for' SPACE object
+  | SPEND SPACE 'mana as though it were mana of any type to cast' SPACE object
+  | CHOOSE SPACE INDEFINITE_ARTICLE_A SPACE CARD SPACE 'name'
   ;
 
 playerVerbPhrase:
@@ -272,26 +312,31 @@ playerVerbPhrase:
  | playerVerbPhrase SPACE FOR SPACE EACH SPACE nakedObject
  | playerVerbPhrase SPACE 'for the first time each turn'
  | controls SPACE object
+ | owns SPACE object
  | 'puts' SPACE object SPACE intoZone
- | 'surveil' | 'surveils'
+ | SURVEIL | SURVEIL 's'
  | 'discards' SPACE object
  | 'sacrifices' SPACE object
- | REVEAL 's' SPACE 'their hand'
+ | REVEAL 's' SPACE playersPossessive SPACE 'hand'
  | imperative
  | playerVerbPhrase ',' SPACE 'then' SPACE playerVerbPhrase
  | CANT SPACE imperative
  | DOESN_T | DON_T | 'does' | 'do'
+ | ('loses' | 'lose') SPACE 'the game'
+ | playerVerbPhrase SPACE IF SPACE s
+ | playerVerbPhrase SPACE 'this way'
+ | gets SPACE 'an emblem' SPACE withClause
  ;
 
 objectVerbPhrase:
-   objectVerbPhrase SPACE 'and' SPACE objectVerbPhrase
+   objectVerbPhrase ','? SPACE 'and' SPACE objectVerbPhrase
  | objectVerbPhrase SPACE 'or' SPACE objectVerbPhrase
- | objectVerbPhrase ',' SPACE 'then' SPACE objectVerbPhrase
+ | objectVerbPhrase ',' (SPACE 'then')? SPACE objectVerbPhrase
  | ('has' | 'have') SPACE acquiredAbility (SPACE asLongAsClause)?
- | gets SPACE ptModification SPACE 'and' SPACE gains SPACE acquiredAbility SPACE untilClause
- | gains SPACE acquiredAbility SPACE 'and' SPACE gets SPACE ptModification SPACE untilClause
- | gets SPACE ptModification (SPACE FOR SPACE EACH SPACE nakedObject)? (SPACE untilClause)?
- | 'enters' SPACE THEBATTLEFIELD SPACE 'with' SPACE INDEFINITE_ARTICLE_A SPACE counterKind SPACE 'counter on it'
+ | gets SPACE ptModification SPACE 'and' SPACE gains SPACE acquiredAbility (SPACE untilClause)?
+ | gains SPACE acquiredAbility SPACE 'and' SPACE gets SPACE ptModification (SPACE untilClause)?
+ | gets SPACE ptModification (SPACE foreachClause)? (SPACE untilClause)?
+ | 'enters' SPACE THEBATTLEFIELD SPACE 'with' SPACE (INDEFINITE_ARTICLE_A | INDEFINITE_ARTICLE_AN SPACE 'additional') SPACE counterKind SPACE COUNTER SPACE 'on' SPACE IT (SPACE foreachClause)?
  | 'enters' SPACE THEBATTLEFIELD SPACE 'with' SPACE englishNumber SPACE counterKind SPACE COUNTER 's' SPACE 'on' SPACE IT
  | 'enters' SPACE THEBATTLEFIELD SPACE 'with' SPACE 'a number of' SPACE counterKind SPACE COUNTER 's' SPACE 'on' SPACE IT 'equal' SPACE 'to' SPACE numberDefinition
  | ('enter' | 'enters') SPACE THEBATTLEFIELD (SPACE 'tapped')? (SPACE 'under' SPACE playersPossessive SPACE 'control')?
@@ -299,7 +344,7 @@ objectVerbPhrase:
  | 'ETBs'
  | ('die' | 'dies')
  | 'is' SPACE PUT SPACE intoZone SPACE fromZone
- | CANT SPACE cantClauseInner (SPACE thisTurn)?
+ | CANT SPACE cantClauseInner (SPACE duration)?
  | 'deals' SPACE dealsWhat
  | 'is' SPACE isWhat
  | ('attacks' | 'attack') (SPACE (THIS | EACH) SPACE 'combat if able')?
@@ -313,31 +358,57 @@ objectVerbPhrase:
  | CAN SPACE 'attack' SPACE 'as though it didn\'t have defender'
  | 'do so'
  | 'does so'
- | objectVerbPhrase SPACE FOR SPACE EACH SPACE nakedObject
- | objectVerbPhrase SPACE thisTurn
+ | ('remain' | 'remains') SPACE 'exiled'
+ | 'becomes' SPACE becomesWhat
+ | ('lose' | 'loses') SPACE 'all abilities' (SPACE untilClause)?
+ | ('is'|'are') SPACE 'created'
+ | 'causes' SPACE player SPACE 'to discard' SPACE object
+ | objectVerbPhrase SPACE foreachClause
+ | objectVerbPhrase SPACE duration
  | objectVerbPhrase SPACE IF SPACE s
  ;
 objectInfinitive:
-   'be put' SPACE intoZone SPACE thisTurn
+   'be put' SPACE intoZone SPACE duration
+ | 'be created under your control'
  | 'fight' SPACE object
  | 'deal' SPACE dealsWhat
    ;
 
-isWhat: color | object | inZone;
-becomesWhat: 'tapped' | 'untapped';
+isWhat: color | object | inZone
+    | anyType (SPACE 'in addition to its other types')?;
+becomesWhat: 'tapped' | 'untapped'
+    | INDEFINITE_ARTICLE_A SPACE COPY SPACE 'of' SPACE object
+        (',' SPACE exceptClauseInCopyEffect)?;
+exceptClauseInCopyEffect:
+    'except' SPACE
+    copyException (',' SPACE ('and' SPACE)? copyException)*
+    ;
+copyException:
+     ITS SPACE 'name' SPACE 'is' SPACE name
+   | IT_S SPACE isWhat
+   | ss
+    ;
 itsPossessive:
     object SAXON |
-    ITS
+    ITS |
+    'their'
     ;
 acquiredAbility:
     keyword
     | '"' ability '"'
+    | '“' ability '”'
     | acquiredAbility SPACE 'and' SPACE acquiredAbility
+    | 'this ability'
     ;
 gets: 'gets' | 'get';
 controls: 'controls' | 'control';
+owns: 'owns' | 'own';
 gains: GAINS | GAIN;
-thisTurn: 'this turn';
+duration:
+     'this turn'
+   | FOR SPACE asLongAsClause
+   | 'Until' SPACE untilClauseInner
+   ;
 numericalCharacteristic: 'toughness' | 'power' | 'converted mana cost';
 untilClause: 'until' SPACE untilClauseInner;
 untilClauseInner:  s |
@@ -349,7 +420,7 @@ untilClauseInner:  s |
 damagePreventionAmount: ALL;
 damageNoun: 'damage' | ('noncombat' | 'combat') SPACE 'damage';
 
-createTokenDescription : englishNumber ' ' pt ' ' color ' ' permanentType ' ' ('token' | 'tokens') (SPACE withClause)?;
+createTokenDescription : englishNumber ' ' pt ' ' color ' ' permanentType ' ' ('token' 's'?) (SPACE withClause)?;
 color : 'blue' | 'red' | 'green' | 'white' | 'black' | 'colorless' | 'monocolored' | 'multicolored' |  color SPACE 'and' SPACE color;
 pt: NUMBER '/' NUMBER;
 ptModification: PLUSMINUS (NUMBER | XX) '/' PLUSMINUS (NUMBER | XX);
@@ -362,7 +433,10 @@ withClause : 'with' SPACE withClauseInner;
 withClauseInner :
    numericalCharacteristic SPACE numericalComparison
  | THE SPACE 'highest' SPACE numericalCharacteristic SPACE 'among' SPACE object
- | keyword;
+ | 'converted mana costs' SPACE numericalNumber SPACE 'and' SPACE numericalNumber
+ | counterKind SPACE 'counters on' SPACE (IT|THEM)
+ | 'that name'
+ | acquiredAbility;
 counterKind: ptModification | 'charge' | 'hit' | 'wish';
 
 // Deals damage
@@ -371,6 +445,7 @@ dealsWhat:
  | numericalNumber SPACE 'damage' SPACE 'to' SPACE damageRecipient
  | 'damage' SPACE 'equal' SPACE 'to' SPACE numberDefinition SPACE 'to' SPACE damageRecipient
  | 'damage' SPACE 'to' SPACE damageRecipient SPACE 'equal' SPACE 'to' SPACE numberDefinition
+ | numericalNumber SPACE 'damage' SPACE divideAmongDamageTargets
  ;
 
 damageRecipient:
@@ -379,9 +454,11 @@ damageRecipient:
    | TARGET SPACE damageRecipient SPACE 'or' SPACE damageRecipient
    | 'itself'
    ;
+divideAmongDamageTargets:
+    'divided as you choose among one, two, or three targets';
 
 // Numbers
-englishNumber: INDEFINITE_ARTICLE_A | INDEFINITE_ARTICLE_AN | 'one' | 'two' | 'three' | 'four' | 'five' | 'six' | XX | 'that many';
+englishNumber: INDEFINITE_ARTICLE_A | INDEFINITE_ARTICLE_AN | 'one' | 'two' | 'three' | 'four' | 'five' | 'six' | 'seven' | XX | 'that many';
 numericalNumber: NUMBER | 'that much' | number;
 numericalComparison :
     number SPACE 'or' SPACE 'greater'
@@ -413,8 +490,12 @@ cantClauseInner:
   ;
 
 // Zone
-zone: (playersPossessive | INDEFINITE_ARTICLE_A) SPACE actualZone | EXILE | THEBATTLEFIELD;
-actualZone: 'graveyard' | 'library' | 'hand' | actualZone SPACE 'or' SPACE actualZone;
+zone: (playersPossessive | INDEFINITE_ARTICLE_A) SPACE actualZone | EXILE | THEBATTLEFIELD | IT;
+actualZone: 'graveyard' | 'library' | 'hand'
+    | actualZone 's'
+    | actualZone SPACE 'or' SPACE actualZone
+    | actualZone SPACE 'and/or' SPACE actualZone
+    | actualZone (',' SPACE ('and' SPACE)? actualZone)+;
 intoZone:
    'onto' SPACE THEBATTLEFIELD
  | 'into' SPACE zone
@@ -431,14 +512,18 @@ fromZone:
    ;
 
 // Permanent, spell, or card -- basic typing, without determiners
-n: PERMANENT | n 's' | (anyType SPACE)? SPELL | (anyType SPACE)? CARD | permanentType | PERMANENT SPACE CARD | 'token';
-permanentType : 'artifact' | CREATURE | 'enchantment' | 'land' | 'Gate' | 'planeswalker'
+n: PERMANENT | n 's' | (anyType SPACE)? SPELL | (anyType SPACE)? CARD | permanentType | PERMANENT SPACE CARD | 'token' | 'ability';
+permanentType : 'artifact' | CREATURE | 'enchantment' | LAND | 'Gate' | 'planeswalker'
  | 'basic'
- | 'Soldier' | 'Knight' | 'Elf' | 'Bird' | 'Illusion' | 'Goblin' | 'Insect'
+ | 'Soldier' | 'Knight' | 'Elf' | 'Bird' | 'Illusion' | 'Goblin' | 'Insect' | 'Angel'
  | 'Plains' | 'Forest' | 'Mountain' | 'Swamp' | 'Island'
  | 'Vraska' | 'Ral'
  | permanentType ' ' permanentType | permanentType SPACE 'or' SPACE permanentType;
-anyType : permanentType | spellType | '[' anyType ']';
+name: 'Ral, Caller of Storms'
+ | 'Vraska, Regal Gorgon'
+ | 'Lazav, the Multifarious'
+ ;
+anyType : permanentType | spellType | LEGENDARY | '[' anyType ']';
 spellType:
     INSTANT | SORCERY | spellType SPACE 'or' SPACE spellType
     | spellType SPACE 'and' SPACE spellType
@@ -447,13 +532,14 @@ spellType:
 // Special wordings in sentences
 asLongAsClause: AS SPACE 'long' SPACE AS SPACE condition;
 doSomethingInsteadOfSomethingElse:
-    s SPACE 'instead of putting' SPACE IT SPACE 'into its owner\'s graveyard'
+    s SPACE 'instead of putting' SPACE IT SPACE intoZone
     ;
 
 
 // Costs
 costs : cost (',' SPACE cost)*;
-cost: 'T' | '{T}' | s | manacost;
+cost: 'T' | '{T}' | s | manacost | loyaltyCost;
+loyaltyCost: PLUSMINUS NUMBER;
 manacost: manaGroup+;
 manaGroup: '{' (NUMBER | number)? 'W'* 'U'* 'B'* 'R'* 'G'* '}' | manaSymbol;
 manaSymbols: manaSymbol+;
@@ -465,13 +551,17 @@ qualifiedPartOfTurn: turnQualification SPACE partOfTurn
     | 'combat on your turn' | 'combat';
 turnQualification:
    (playersPossessive | THE) (SPACE 'next')?
+   | THIS
    | EACH
+   | THIS SPACE 'turn' SAXON
+   | THAT SPACE 'turn' SAXON
    ;
 partOfTurn: 'turn'
     | 'untap step'
     | 'upkeep'
     | 'draw step'
     | 'precombat main phase'
+    | 'main phase'
     | 'end step'
     ;
 
@@ -480,6 +570,7 @@ playersPossessive:
     'your'
   | 'their'
   | player SAXON
+  | player AP
   ;
 
 // Miscellaneous
@@ -551,7 +642,7 @@ WHEN : W 'hen';
 WHENEVER : W 'henever';
 IF : I 'f';
 THE : T 'he';
-IT_S : I 't\'s';
+IT_S : (I 't\'s') | (I 't’s');
 ITS :  I 'ts';
 THIS:  T 'his';
 THAT:  T 'hat';
@@ -583,3 +674,7 @@ THAT_S: 'that' AP 's';
 REMOVE: R 'emove';
 GAINS: G 'ains';
 GAIN : G 'ain';
+LAND: L 'and';
+SPEND : S 'pend';
+TAKE : T 'ake';
+YOU_VE: Y 'ou' AP 've';
