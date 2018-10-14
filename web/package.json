@@ -2,6 +2,7 @@
   "name": "mtg-grammar",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://soothsilver.github.io/mtg-grammar",
   "dependencies": {
     "@types/crypto-js": "^3.1.43",
     "@types/randomstring": "^1.1.6",
