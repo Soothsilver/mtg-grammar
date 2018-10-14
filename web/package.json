@@ -18,7 +18,9 @@
     "build": "react-scripts-ts build",
     "test": "react-scripts-ts test --env=jsdom",
     "eject": "react-scripts-ts eject",
-    "antlr4ts": "antlr4ts -visitor -o src/generated ../mtg.g4"
+    "antlr4ts": "antlr4ts -visitor -o src/generated ../mtg.g4",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "devDependencies": {
     "@types/contextjs": "^2.1.30",
