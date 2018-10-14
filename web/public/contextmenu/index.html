@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=8">
+    <title>jQuery ContextJS Plugin Examples</title>
+    <link href="http://www.jqueryscript.net/css/jquerysctipttop.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" type="text/css" href="demo.css">
+    <link href='http://fonts.googleapis.com/css?family=Rokkitt' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="context.standalone.css">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+            integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
+            integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+            crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+          integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
+            integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
+            crossorigin="anonymous"></script>
+
+</head>
+<body>
+<h1 style="margin-top:150px;">jQuery ContextJS Plugin Examples</h1>
+<div id="download">Right Click to Demo <span class="amp">&amp;</span> Download</div>
+<div class="description">
+    <h2>About</h2>
+    <p>ContextJS is a lightweight solution for contextual menus. Currently, there are two versions.</p>
+    <p>The first is to be used <i>with</i> <a href="twitter.github.com/bootstrap/" target="_blank">Twitters
+        Bootstrap</a> (bootstrap.css specifically). If you do not use or want to use bootstrap.css, there is a
+        standalone stylesheet to give the menu it's base styles.</p>
+    <h2>Features</h2>
+    <ul>
+        <li>Linted: Valid JS</li>
+        <li>Can be used with or without Twitters Bootstrap.css</li>
+        <li>Event Based Links</li>
+        <li>Anchor Links</li>
+        <li>Headers</li>
+        <li>Dividers</li>
+        <li>Recursive Menus (infinite depth)</li>
+        <li>Vertical Space Detection (turns into a "dropup")</li>
+        <li>Horizontal Space Detection (Drops to the left instead of right)</li>
+        <li>Add/Delete menus Dynamically</li>
+        <li>Even works on <a href="http://google.com" class="inline-menu">Inline Links</a></li>
+    </ul>
+    <h2>Public API</h2>
+    <h3>Initializing</h3>
+    <pre>context.init({
+    fadeSpeed: 100,
+    filter: function ($obj){},
+    above: 'auto',
+    preventDoubleContext: true,
+    compress: false
+});</pre>
+    <table border="1" cellpadding="6">
+        <thead>
+        <tr>
+            <th>Paramater</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>fadeSpeed</td>
+            <td>int</td>
+            <td>100</td>
+            <td>The speed in which the context menu fades in (in milliseconds)</td>
+        </tr>
+        <tr>
+            <td>filter</td>
+            <td>function</td>
+            <td>null</td>
+            <td>Function that each finished list element will pass through for extra modification.</td>
+        </tr>
+        <tr>
+            <td>above</td>
+            <td>string || boolean</td>
+            <td>'auto'</td>
+            <td>If set to 'auto', menu will appear as a "dropup" if there is not enough room below it. Settings to true
+                will make the menu a "popup" by default.
+            </td>
+        </tr>
+        <tr>
+            <td>preventDoubleContext</td>
+            <td>boolean</td>
+            <td>true</td>
+            <td>If set to true, browser-based context menus will not work on contextjs menus.</td>
+        </tr>
+        <tr>
+            <td>compress</td>
+            <td>boolean</td>
+            <td>false</td>
+            <td>If set to true, context menus will have less padding, making them (hopefully) more unobtrusive</td>
+        </tr>
+        </tbody>
+    </table>
+    <h3>Updating Settings</h3>
+    <pre>context.settings({initSettings});</pre>
+    <table border="1" cellpadding="6">
+        <thead>
+        <tr>
+            <th>Paramater</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>settings</td>
+            <td>object</td>
+            <td>null</td>
+            <td>The init settings can be placed in here to update context menus written to the DOM. Changing settings
+                between attaching menus will give the menus their own options.
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <h3>Attaching</h3>
+    <pre>context.attach('#download', [menuObjects]);</pre>
+    <table border="1" cellpadding="6">
+        <thead>
+        <tr>
+            <th>Paramater</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>selector</td>
+            <td>string</td>
+            <td>null</td>
+            <td>The jQuery (or css) selector of the element you want to apply the context menu to</td>
+        </tr>
+        <tr>
+            <td>menuObjects</td>
+            <td>array</td>
+            <td>null</td>
+            <td>An array of objects that define the menus structure</td>
+        </tr>
+        </tbody>
+    </table>
+    <h3>Destroying</h3>
+    <pre>context.destroy('#download');</pre>
+    <table border="1" cellpadding="6">
+        <thead>
+        <tr>
+            <th>Paramater</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>selector</td>
+            <td>string</td>
+            <td>null</td>
+            <td>The jQuery (or css) selector of the element you want to remove the context menu from</td>
+        </tr>
+        </tbody>
+    </table>
+    <h2>Menu Objects</h2>
+    <h3>Headers</h3>
+    <pre>{
+	header: 'My Header Title'
+}</pre>
+    <h3>Anchor Links</h3>
+    <pre>{
+	text: 'My Link Title', 
+	href: 'http://contextjs.com/', 
+	target: '_blank'
+}</pre>
+    <h3>Dividers</h3>
+    <pre>{
+	divider: true
+}</pre>
+    <h3>Event Based Actions</h3>
+    <pre>{
+    text: 'Event Based Link',
+    action: function(e){
+    	e.preventDefault();
+        alert('Do Something');
+    }
+}</pre>
+    <h3>Sub-Menus</h3>
+    <pre>{
+    text: 'My Sub-menu',
+    subMenu: [menuObjects]
+}</pre>
+    <h3>Tracking Links with Google Analytics</h3>
+    <pre>{
+	text: 'context.js', 
+	href: 'http://contextjs.com/context.js', 
+	target:'_blank', 
+	action: function(e){
+		_gaq.push(['_trackEvent', 'ContextJS Download', this.pathname, this.innerHTML]);
+	}
+}</pre>
+
+
+    <h2>Notes</h2>
+    <ul>
+        <li>Stray trailing commas are disliked by IE. Make sure when creating your menu, you take that into account,
+            elsewise, you will get the <code>SCRIPT5007: Unable to get value of the property</code> error.
+        </li>
+    </ul>
+    <h2>Credits</h2>
+    <ul>
+        <li><a href="http://twitter.github.com/bootstrap/" rel="nofollow">Twitter Bootstrap</a></li>
+        <li>
+            <script type="text/javascript" src="http://lab.jakiestfu.com/code.js" data-color="#ddd"
+                    id="codejs"></script>
+        </li>
+    </ul>
+    <h4><a href="http://twitter.com/jakiestfu" target="_blank" rel="nofollow">Tweet to me with Bugs</a></h4>
+    <div class="finale">
+        <h1>Enjoy</h1>
+        <h1 class="toggle">Me Codesta</h1>
+    </div>
+</div>
+<script src="http://code.jquery.com/jquery-latest.min.js"></script>
+<script src="context.js"></script>
+<script src="demo.js"></script>
+<script type="text/javascript">
+
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-36251023-1']);
+    _gaq.push(['_setDomainName', 'jqueryscript.net']);
+    _gaq.push(['_trackPageview']);
+
+    (function () {
+        var ga = document.createElement('script');
+        ga.type = 'text/javascript';
+        ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(ga, s);
+    })();
+
+</script>
+</body>
+</html>

@@ -9,6 +9,7 @@
 // Comments for why a grammar rule is needed (Chance for Glory)
 // Cheating for: Gruesome Menagerie
 // Lazav the Multifarious name + planeswalker deck
+// Mission briefing (missing space in Oracle text)
 
 // Grammar starts there
 grammar mtg;
@@ -39,7 +40,7 @@ fragment X : [xX];
 fragment Y : [yY];
 fragment Z : [zZ];
 
-card : ability ('\n'+ ability)* |;
+card : '\n'* ability ('\n'+ ability)* |;
 ability : keywords | activated | staticOrSpell | triggered | modal | abilityWordAbility | additionalCostToCastSpell | weirdAbility;
 //    | ability SPACE reminderText;
 
@@ -50,7 +51,7 @@ modalPrompt :
     CHOOSE SPACE 'one or both' SPACE DASHDASH |
     CHOOSE SPACE 'one' SPACE DASHDASH
     ;
-chooseOneOption: '* ' effect;
+chooseOneOption: ('* ' | '• ') effect;
 
 // Keyword abilities
 keywords: keyword (',' SPACE keywords)?;
@@ -82,7 +83,7 @@ triggerConditionInner:
     ss
   | YOU SPACE CAST SPACE object
   | YOU SPACE 'do'
-  | player SPACE GAINS SPACE 'life'
+  | player SPACE gains SPACE 'life'
   | object SPACE 'is dealt damage'
   ;
 interveningIfClause: IF SPACE condition ',' SPACE;
@@ -132,7 +133,7 @@ weirdSentence:
     'After' SPACE qualifiedPartOfTurn ', there is an additional combat phase followed by an additional main phase'
     ;
 foreachClause:
-     FOR SPACE EACH SPACE nakedObject
+     FOR SPACE EACH SPACE pureObject
    | FOR SPACE EACH SPACE 'color of mana spent to cast' SPACE object
     ;
 // Condition
@@ -148,17 +149,17 @@ condition:
 
 // Subject
 entity: object | player;
-anyEntity: object | nakedObject | player | nakedPlayer;
+anyEntity: object | pureObject | player | purePlayer;
 player:
   YOU
   | THEY
-  | commonReferencingPrefix SPACE nakedPlayer
+  | commonReferencingPrefix SPACE purePlayer
   | 'your' SPACE ('opponent' | 'opponents')
   | 'defending player'
-  | itsPossessive SPACE ('controller' | 'owner')
+  | itsPossessive SPACE ('controller' | 'owner' | 'owners' | 'controllers')
   | player SPACE 'who can\'t'
   ;
-nakedPlayer:
+purePlayer:
     'opponent'
   | 'player'
   | 'players'
@@ -172,15 +173,15 @@ object :
  | 'one'
  | 'the rest' | 'the other'
  | 'this emblem'
- | referencingObjectPrefix SPACE nakedObject
+ | referencingObjectPrefix SPACE pureObject
  | referencingObjectPrefix SPACE object // because of "one of them"
  | object SPACE THAT_S SPACE isWhat
  | object SPACE 'and' SPACE object
  | object SPACE 'or' SPACE object
  | object ',' SPACE (object ',' SPACE )+ 'or' SPACE object
- | cumulativeReferencingPrefix nakedObject
- | nakedObject SPACE suffix
- | nakedObject // because of plurals...
+ | cumulativeReferencingPrefix pureObject
+ | pureObject SPACE suffix
+ | pureObject // because of plurals...
  | object SPACE 'and/or' SPACE object
  | EACH SPACE 'of' SPACE object
  | THE SPACE 'top' SPACE englishNumber SPACE CARD 's' SPACE 'of' SPACE zone
@@ -202,17 +203,18 @@ suffix:
  | 'named' SPACE name
  | YOU_VE SPACE 'cast before it this turn'
  ;
-nakedObject:
-   prefix+ SPACE nakedObject
+pureObject:
+   prefix+ SPACE pureObject
  | COPY (SPACE 'of' SPACE object)?
  | 'copies'
- | cumulativeReferencingPrefix SPACE nakedObject
- | nakedObject SPACE 'or' SPACE nakedObject
- | nakedObject ',' SPACE (nakedObject ',' SPACE )+ 'or' SPACE nakedObject
- | nakedObject SPACE withClause
+ | cumulativeReferencingPrefix SPACE pureObject
+ | pureObject SPACE 'or' SPACE pureObject
+ | pureObject ',' SPACE (pureObject ',' SPACE )+ 'or' SPACE pureObject
+ | pureObject SPACE 'without' SPACE keyword
+ | pureObject SPACE withClause
  | n
- | nakedObject SPACE suffix
- | nakedObject SPACE 'and/or' SPACE nakedObject
+ | pureObject SPACE suffix
+ | pureObject SPACE 'and/or' SPACE pureObject
  ;
 referencingObjectPrefix:
     THE SPACE 'sacrificed'
@@ -292,11 +294,11 @@ imperative:
   | LOOK SPACE 'at the top' SPACE englishNumber SPACE CARD 's' SPACE 'of' SPACE zone
   | LOOK SPACE AT SPACE object
   | REVEAL SPACE object
-  | PUT SPACE object SPACE intoZone (SPACE 'tapped')?
+  | PUT SPACE object SPACE intoZone (SPACE 'tapped')? (SPACE 'and' SPACE object SPACE intoZone)?
   | gains SPACE 'control' SPACE 'of' SPACE object
   | (YOU SPACE)? 'may' SPACE s ('.' SPACE IF SPACE YOU SPACE 'do' ',' SPACE s)?
   | 'have' SPACE object SPACE objectInfinitive
-  | imperative SPACE FOR SPACE EACH SPACE nakedObject
+  | imperative SPACE FOR SPACE EACH SPACE pureObject
   | imperative SPACE 'and' SPACE imperative
   | imperative SPACE 'unless' SPACE imperative
   | CHOOSE SPACE 'new targets for' SPACE object
@@ -309,7 +311,7 @@ imperative:
 playerVerbPhrase:
    gains SPACE number SPACE 'life'
  | gains SPACE 'life' SPACE 'equal' SPACE 'to' SPACE itsPossessive SPACE numericalCharacteristic
- | playerVerbPhrase SPACE FOR SPACE EACH SPACE nakedObject
+ | playerVerbPhrase SPACE FOR SPACE EACH SPACE pureObject
  | playerVerbPhrase SPACE 'for the first time each turn'
  | controls SPACE object
  | owns SPACE object
@@ -338,7 +340,7 @@ objectVerbPhrase:
  | gets SPACE ptModification (SPACE foreachClause)? (SPACE untilClause)?
  | 'enters' SPACE THEBATTLEFIELD SPACE 'with' SPACE (INDEFINITE_ARTICLE_A | INDEFINITE_ARTICLE_AN SPACE 'additional') SPACE counterKind SPACE COUNTER SPACE 'on' SPACE IT (SPACE foreachClause)?
  | 'enters' SPACE THEBATTLEFIELD SPACE 'with' SPACE englishNumber SPACE counterKind SPACE COUNTER 's' SPACE 'on' SPACE IT
- | 'enters' SPACE THEBATTLEFIELD SPACE 'with' SPACE 'a number of' SPACE counterKind SPACE COUNTER 's' SPACE 'on' SPACE IT 'equal' SPACE 'to' SPACE numberDefinition
+ | 'enters' SPACE THEBATTLEFIELD SPACE 'with' SPACE 'a number of' SPACE counterKind SPACE COUNTER 's' SPACE 'on' SPACE IT SPACE 'equal' SPACE 'to' SPACE numberDefinition
  | ('enter' | 'enters') SPACE THEBATTLEFIELD (SPACE 'tapped')? (SPACE 'under' SPACE playersPossessive SPACE 'control')?
  | ('leave' | 'leaves') SPACE THEBATTLEFIELD
  | 'ETBs'
@@ -434,7 +436,7 @@ withClauseInner :
    numericalCharacteristic SPACE numericalComparison
  | THE SPACE 'highest' SPACE numericalCharacteristic SPACE 'among' SPACE object
  | 'converted mana costs' SPACE numericalNumber SPACE 'and' SPACE numericalNumber
- | counterKind SPACE 'counters on' SPACE (IT|THEM)
+ | counterKind SPACE COUNTER 's' SPACE 'on' SPACE (IT|THEM)
  | 'that name'
  | acquiredAbility;
 counterKind: ptModification | 'charge' | 'hit' | 'wish';
@@ -521,7 +523,7 @@ permanentType : 'artifact' | CREATURE | 'enchantment' | LAND | 'Gate' | 'planesw
  | permanentType ' ' permanentType | permanentType SPACE 'or' SPACE permanentType;
 name: 'Ral, Caller of Storms'
  | 'Vraska, Regal Gorgon'
- | 'Lazav, the Multifarious'
+ | '~'
  ;
 anyType : permanentType | spellType | LEGENDARY | '[' anyType ']';
 spellType:
@@ -579,7 +581,7 @@ reminderText: REMINDER_TEXT;
 // Terminals
 XX : 'X';
 PUT : P 'ut';
-PLUSMINUS : '+' | '-';
+PLUSMINUS : '+' | '-' | '−';
 NUMBER: XX | [0-9][0-9]?;
 SACRIFICE : S 'acrifice';
 DESTROY : D 'estroy';
@@ -661,7 +663,7 @@ IT : I 't';
 SEARCH: S 'earch';
 THEM : T 'hem';
 DASHDASH: '--' | '—';
-REMINDER_TEXT: SPACE '(' .*? ')' -> skip;
+REMINDER_TEXT: SPACE? '(' .*? ')' -> skip;
 DOESN_T: 'doesn' AP 't';
 DON_T: 'don' AP 't';
 AP: '\'' | '’';

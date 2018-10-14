@@ -1,0 +1,1 @@
+- You will replace Bob's public key on a public file server so that Alice downloads your public key instead of Bob's.

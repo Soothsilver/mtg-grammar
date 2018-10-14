@@ -1,0 +1,32 @@
+{
+  "name": "mtg-grammar",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@types/crypto-js": "^3.1.43",
+    "@types/randomstring": "^1.1.6",
+    "antlr4ts": "^0.4.1-alpha.0",
+    "crypto-js": "^3.1.9-1",
+    "randomstring": "^1.1.5",
+    "react": "^16.5.2",
+    "react-dom": "^16.5.2",
+    "react-scripts-ts": "2.17.0"
+  },
+  "scripts": {
+    "start": "react-scripts-ts start",
+    "build": "react-scripts-ts build",
+    "test": "react-scripts-ts test --env=jsdom",
+    "eject": "react-scripts-ts eject",
+    "antlr4ts": "antlr4ts -visitor -o src/generated ../mtg.g4"
+  },
+  "devDependencies": {
+    "@types/contextjs": "^2.1.30",
+    "@types/jest": "^23.3.6",
+    "@types/jquery": "^3.3.17",
+    "@types/node": "^10.11.7",
+    "@types/react": "^16.4.16",
+    "@types/react-dom": "^16.0.9",
+    "antlr4ts-cli": "^0.4.0-alpha.4",
+    "typescript": "^3.1.3"
+  }
+}

@@ -1,0 +1,73 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #daede7;
+}
+
+#root {
+    margin: auto;
+    max-width: 1200px;
+    padding: 5px;
+    border: 1px solid blue;
+    border-radius: 10px;
+    background-color: #eeeeee; /* #e2f5ef; */
+    margin-top: 5px;
+}
+hr {
+    border-top-color: #d6d8c5;
+    margin-top: 8px !important;
+    margin-bottom: 8px !important;
+}
+.top-bar {
+    padding: 4px;
+    margin: 0;
+    text-align: center;
+}
+.top-bar h2 {
+    padding: 0;
+    margin: 0;
+    font-size: 22px;
+}
+
+.round-container {
+    background-color: #ffffff;
+    border: 1px inset grey;
+    padding: 5px;
+    border-radius: 5px;
+}
+.clear {
+    clear: both;
+}
+ul, #fullParseTree {
+    list-style-type: none;
+}
+#fullParseTree {
+    margin: 0;
+    padding: 0;
+}
+.ccaret {
+    cursor: pointer;
+    user-select: none;
+}
+/* Create the caret/arrow with a unicode, and style it */
+.ccaret::before {
+    content: "\25B6";
+    color: black;
+    display: inline-block;
+    margin-right: 6px;
+}
+
+/* Rotate the caret/arrow icon when clicked on (using JavaScript) */
+.caret-down::before {
+    transform: rotate(90deg);
+}
+
+/* Hide the nested list */
+.nested {
+    display: none;
+}
+
+/* Show the nested list when the user clicks on the caret/arrow (with JavaScript) */
+.nestedActive {
+    display: block;
+}
