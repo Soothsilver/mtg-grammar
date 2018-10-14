@@ -7,7 +7,6 @@ import {CardContext, mtgParser} from "../generated/mtgParser";
 import {ParseTree, ParseTreeListener, ParseTreeWalker, TerminalNode} from "antlr4ts/tree";
 import {instanceOf} from "prop-types";
 
-// TODO elsewhere: if computers change from level to level, their position is not updated
 class MyParseListener implements ParseTreeListener {
     visitTerminal?: (node: TerminalNode) => void;
 
