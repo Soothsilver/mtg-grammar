@@ -1,7 +1,7 @@
 /// <reference path="../external/typings.d.ts" />
 import * as React from 'react';
 import setData from '../GRN.json'
-import {ANTLRErrorListener, ANTLRInputStream, CommonTokenStream} from "antlr4ts";
+import {ANTLRErrorListener, ANTLRInputStream, CommonTokenStream, RuleContext} from "antlr4ts";
 import {mtgLexer} from "../generated/mtgLexer";
 import {CardContext, mtgParser} from "../generated/mtgParser";
 import {ParseTree, ParseTreeListener, ParseTreeWalker, TerminalNode} from "antlr4ts/tree";
@@ -161,12 +161,13 @@ class App extends React.Component {
     }
 
     private getNonTerminalName(node: ParseTree): string {
-        let nm = node.constructor.name;
-        if (nm.endsWith("Context")) {
-            return nm.substr(0, nm.length - 7);
+        if (node instanceof RuleContext) {
+            let ri = node.ruleIndex
+            return mtgParser.ruleNames[ri];
         } else {
-            return nm;
+            return "node";
         }
+
     }
 
     public render() {
@@ -185,8 +186,12 @@ class App extends React.Component {
                     <div id="tree">
                     </div>
                     <hr/>
-                    <small>To download the grammar file, go to <a href="https://raw.githubusercontent.com/Soothsilver/mtg-grammar/master/mtg.g4">https://raw.githubusercontent.com/Soothsilver/mtg-grammar/master/mtg.g4</a>.<br /><a onClick={this.testAllCards}>Click here to test all <i>Guilds of Ravnica</i> cards for syntax errors.</a>
-                    </small>
+                    Links:&nbsp;
+                    <a href="https://github.com/Soothsilver/mtg-grammar">Github</a> |&nbsp;
+                    <a href="https://hudecekpetr.cz/?p=867">Blog post</a> |&nbsp;
+                    <a href="https://raw.githubusercontent.com/Soothsilver/mtg-grammar/master/mtg.g4">Grammar</a> | &nbsp;
+                    <a onClick={this.testAllCards}>Test all <i>Guilds of Ravnica</i> cards for syntax errors</a>
+
                     <datalist id="guilds">
                         {
                            this.cardNames
